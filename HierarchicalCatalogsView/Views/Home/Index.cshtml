@@ -1,0 +1,51 @@
+﻿@using HierarchicalCatalogsView
+@using HierarchicalCatalogsView.Models
+@inject DataService dataService
+
+@{
+	ViewData["Title"] = "Home Page";
+	string path = ViewData["Path"].ToString();
+	string currentCatalog = ViewData["CurrentCatalog"].ToString();
+	List<string> childCatalogs = new List<string>();
+
+	if (currentCatalog != "")
+	{
+		childCatalogs = dataService.GetCatalogs(currentCatalog);
+	}
+	else
+	{
+		childCatalogs = dataService.GetRootCatalogs();
+	}
+}
+
+<div class="bonus-actions">
+	<form class="import-form" asp-action="ImportCatalogsHierarchy" asp-controller="Home" method="post" enctype="multipart/form-data">
+		<label class="import-file">
+			<input type="file" accept=".json" name="file" id="fileInput" />
+			Import
+		</label>
+		<p class="input-file-name hidden" id="inputFileName"></p>
+		<input class="hidden" name="currentCatalog" value="@ViewData["CurrentCatalog"]" />
+		<input type="submit" id="submit" class="hidden" value="Submit" />
+	</form>
+	<a href="/Export?catalogName=@ViewData["CurrentCatalog"]">Export</a>
+	<a class="to-root" href="/">To root "folder"</a>
+</div>
+
+@if (childCatalogs != null)
+{
+	<h2>"Folder" - @(currentCatalog == "" ? "Root" : currentCatalog)</h2>
+
+	<div class="child-catalogs">
+		@foreach (var catalog in childCatalogs)
+		{
+			string link = $"{(path == "/" ? "" : path)}/{catalog}";
+			<a href="@link">@catalog</a>
+		}
+	</div>
+}
+else
+{
+	<h2>No such folder!</h2>
+}
+
