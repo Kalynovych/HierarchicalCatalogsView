@@ -20,20 +20,31 @@ namespace HierarchicalCatalogsView
             _factory = factory;
         }
 
-        public List<string> GetCatalogs(string currentCatalog)
+        public List<string> GetCatalogs(string[] catalogs)
         {
             try
             {
                 using (var dataContext = _factory.CreateDbContext())
                 {
-                    Catalog catalog = dataContext.Catalogs.Where(n => n.CatalogName == currentCatalog).Include(c => c.ChildCatalogs).First();
-                    return catalog.ChildCatalogs.Select(n => n.CatalogName).ToList();
+                    Catalog catalog = dataContext.Catalogs.Where(n => n.CatalogName == catalogs[0]).Include(c => c.ChildCatalogs).First();
+                    return GetChildCatalogs(catalogs.Skip(1).ToArray(), dataContext, catalog);
                 }
             }
             catch
             {
                 return null;
             }
+        }
+
+        private List<string> GetChildCatalogs(string[] catalogs, CatalogContext dataContext, Catalog currentCatalog)
+        {
+            if (catalogs.Length > 0)
+            {
+                int nextCatalogId = currentCatalog.ChildCatalogs.Where(n => n.CatalogName == catalogs[0]).First().CatalogId;
+                Catalog nextCatalog = dataContext.Catalogs.Where(c => c.CatalogId == nextCatalogId).Include(c => c.ChildCatalogs).First();
+                return GetChildCatalogs(catalogs.Skip(1).ToArray(), dataContext, nextCatalog);
+            }
+            return currentCatalog.ChildCatalogs.Select(n => n.CatalogName).ToList();
         }
 
         public List<string> GetRootCatalogs()

@@ -10,7 +10,7 @@
 
 	if (currentCatalog != "")
 	{
-		childCatalogs = dataService.GetCatalogs(currentCatalog);
+		childCatalogs = dataService.GetCatalogs(path.Replace("%20", " ").Split("/", StringSplitOptions.RemoveEmptyEntries));
 	}
 	else
 	{
